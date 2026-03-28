@@ -1,121 +1,132 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect, useRef } from "react";
+import {
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCenter,
+  forceX,
+  forceY,
+} from "d3-force";
 
-function App() {
-  const [count, setCount] = useState(0)
+const WIDTH = 800;
+const HEIGHT = 600;
+
+export default function App() {
+  const [nodeCount, setNodeCount] = useState(30);
+  const [mineCount, setMineCount] = useState(5);
+  const [nodes, setNodes] = useState([]);
+  const [links, setLinks] = useState([]);
+  const svgRef = useRef(null);
+
+  /*
+   * Random connected graph generator which uses d3-force simulation to get positions.
+   * Adds edges randomly with edgeProbability.
+   *
+   * @param {number} nodesCount - Number of nodes to generate.
+   * @param {number} [edgeProbability=0.08] - Probability of edge creation between nodes.
+   * @returns {{nodes: Array, links: Array}} - Object containing nodes and links arrays.
+   */
+  function generateGraph(nodesCount, edgeProbability = 0.08) {
+    if (nodesCount === 0) return { nodes: [], links: [] };
+
+    const nodes = Array.from({ length: nodesCount }, (_, i) => ({
+      id: i,
+      x: 0,
+      y: 0,
+      neighbors: [],
+    }));
+
+    const edges = new Set();
+    const links = [];
+
+    function addEdge(source, target) {
+      if (source === target) return;
+      if (source > target) {
+        [source, target] = [target, source];
+      }
+      const key = source * nodesCount + target;
+      if (edges.has(key)) return;
+      edges.add(key);
+      links.push({ source, target });
+    }
+
+    
+    // Spanning tree
+    for (let i = 1; i < nodesCount; i++) {
+      addEdge(Math.floor(Math.random() * i), i);
+    }
+
+    for (let i = 0; i < nodesCount; i++) {
+      if (Math.random() < edgeProbability) {
+        addEdge(i);
+      }
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <nav className="toolbar">
+        <label>
+          Nodes:
+          <input
+            type="number"
+            value={nodeCount}
+            onChange={(e) => {
+              const nodesCount = Math.max(
+                0,
+                Math.min(100, Number(e.target.value)),
+              );
+              setNodeCount(nodesCount);
+              setMineCount(Math.min(mineCount, nodesCount - 1));
+            }}
+            min="0"
+            max="100"
+          />
+        </label>
+        <label>
+          Mines:
+          <input
+            type="number"
+            value={mineCount}
+            onChange={(e) => {
+              const mines = Math.max(
+                0,
+                Math.min(nodeCount - 1, Number(e.target.value)),
+              );
+              setMineCount(mines);
+            }}
+            min="0"
+            max={nodeCount - 1}
+          />
+        </label>
+        <button onClick={generateGraph}>Generate</button>
+      </nav>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <div className="board-section">
+        <svg ref={svgRef} className="board" viewBox="0 0 800 600">
+          {links.map((link, i) => (
+            <line
+              key={i}
+              x1={link.source.x}
+              y1={link.source.y}
+              x2={link.target.x}
+              y2={link.target.y}
+              stroke="#999"
+              strokeOpacity={0.6}
+            />
+          ))}
+          {nodes.map((node) => (
+            <circle
+              key={node.id}
+              cx={node.x}
+              cy={node.y}
+              r={12}
+              fill="#4a90d9"
+              onClick={() => handleClick(node.id)}
+            />
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
 }
-
-export default App
