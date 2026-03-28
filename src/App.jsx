@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from "react";
 import { MIN_WIDTH, MIN_HEIGHT, generateGraph } from "./graphUtils";
 
@@ -10,25 +9,29 @@ export default function App() {
   const [boardSize, setBoardSize] = useState({ w: MIN_WIDTH, h: MIN_HEIGHT });
   const boardRef = useRef(null);
   const svgRef = useRef(null);
+  const [hoveredNodeID, setHoveredNodeID] = useState(null);
+
+  const hoveredNode = hoveredNodeID !== null ? nodes[hoveredNodeID] : null;
+  const hoveredNeighors = hoveredNode ? hoveredNode.neighbors : [];
 
   function handleClick(id) {
     console.log(id);
   }
 
   const measureBoard = useCallback(() => {
-      if (!boardRef.current) return;
-      const rect = boardRef.current.getBoundingClientRect();
-      setBoardSize({
-        w: Math.max(MIN_WIDTH, rect.width),
-        h: Math.max(MIN_HEIGHT, rect.height),
-      });
-    }, []);
+    if (!boardRef.current) return;
+    const rect = boardRef.current.getBoundingClientRect();
+    setBoardSize({
+      w: Math.max(MIN_WIDTH, rect.width),
+      h: Math.max(MIN_HEIGHT, rect.height),
+    });
+  }, []);
 
   useEffect(() => {
-      measureBoard();
-      window.addEventListener("resize", measureBoard);
-      return () => window.removeEventListener("resize", measureBoard);
-    }, [measureBoard]);
+    measureBoard();
+    window.addEventListener("resize", measureBoard);
+    return () => window.removeEventListener("resize", measureBoard);
+  }, [measureBoard]);
 
   return (
     <div className="app">
@@ -87,27 +90,49 @@ export default function App() {
           className="board"
           viewBox={`0 0 ${boardSize.w} ${boardSize.h}`}
         >
-          {links.map((link, i) => (
-            <line
-              key={i}
-              x1={link.source.x}
-              y1={link.source.y}
-              x2={link.target.x}
-              y2={link.target.y}
-              stroke="#999"
-              strokeOpacity={0.6}
-            />
-          ))}
-          {nodes.map((node) => (
-            <circle
-              key={node.id}
-              cx={node.x}
-              cy={node.y}
-              r={12}
-              fill="#4a90d9"
-              onClick={() => handleClick(node.id)}
-            />
-          ))}
+          {links.map((link, i) => {
+            const sourceID = link.source.id;
+            const targetID = link.target.id;
+            const highlighted =
+              sourceID === hoveredNodeID || targetID === hoveredNodeID;
+            return (
+              <line
+                key={i}
+                x1={link.source.x}
+                y1={link.source.y}
+                x2={link.target.x}
+                y2={link.target.y}
+                stroke={highlighted ? "var(--nord0)" : "var(--nord1)"}
+                strokeWidth={highlighted ? 2.5 : 1}
+                strokeOpacity={1}
+                style={{ transition: "all 0.05s ease" }}
+              />
+            );
+          })}
+          {nodes.map((node) => {
+            const isHovered = node.id === hoveredNodeID;
+            const isNeighbor = hoveredNeighors.includes(node.id);
+            return (
+              <circle
+                key={node.id}
+                cx={node.x}
+                cy={node.y}
+                r={isHovered ? 14 : isNeighbor ? 13 : 12}
+                fill="var(--nord10)"
+                stroke={
+                  isHovered || isNeighbor ? "var(--nord0)" : "var(--nord1)"
+                }
+                strokeWidth={isHovered || isNeighbor ? 3 : 1}
+                style={{
+                  transition:
+                    "r 0.05s ease, stroke 0.05s ease, stroke-width 0.05s ease",
+                }}
+                onClick={() => handleClick(node.id)}
+                onMouseEnter={() => setHoveredNodeID(node.id)}
+                onMouseLeave={() => setHoveredNodeID(null)}
+              />
+            );
+          })}
         </svg>
       </div>
     </div>

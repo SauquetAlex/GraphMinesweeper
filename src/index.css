@@ -1,76 +1,99 @@
+:root {
+    /* Polar Night */
+    --nord0: #2e3440;
+    --nord1: #3b4252;
+    --nord2: #434c5e;
+    --nord3: #4c566a;
+    /* Snow Storm */
+    --nord4: #d8dee9;
+    --nord5: #e5e9f0;
+    --nord6: #eceff4;
+    /* Frost */
+    --nord7: #8fbcbb;
+    --nord8: #88c0d0;
+    --nord9: #81a1c1;
+    --nord10: #5e81ac;
+    /* Aurora */
+    --nord11: #bf616a;
+    --nord12: #d08770;
+    --nord13: #ebcb8b;
+    --nord14: #a3be8c;
+    --nord15: #b48ead;
+}
+
 body {
-  margin: 0;
-  background: #eceff4;
-  color: #2e3440;
-  font-family: system-ui, sans-serif;
+    margin: 0;
+    background: var(--nord6);
+    color: #2e3440;
+    font-family: system-ui, sans-serif;
 }
 
 #root {
-  max-width: 100%;
-  height: 100svh;
-  overflow: hidden;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+    max-width: 100%;
+    height: 100svh;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .toolbar {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  background: #d8dee9;
-  border-bottom: 1px solid #0f3460;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--nord4);
+    border-bottom: 1px solid #0f3460;
 }
 
 .toolbar label {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
 }
 
 .toolbar input[type="number"] {
-  width: 4rem;
-  padding: 0.25rem 0.4rem;
-  background: #eceff4;
-  border: 1px solid #5e81ac;
-  border-radius: 4px;
-  color: #2e3440;
-  font-size: 0.85rem;
+    width: 4rem;
+    padding: 0.25rem 0.4rem;
+    background: var(--nord6);
+    border: 1px solid var(--nord10);
+    border-radius: 4px;
+    color: #2e3440;
+    font-size: 0.85rem;
 }
 
 .toolbar button {
-  padding: 0.3rem 0.9rem;
-  background: #81a1c1;
-  border: none;
-  border-radius: 4px;
-  color: #d8dee9;
-  font-size: 0.85rem;
-  cursor: pointer;
+    padding: 0.3rem 0.9rem;
+    background: var(--nord10);
+    border: none;
+    border-radius: 4px;
+    color: #d8dee9;
+    font-size: 0.85rem;
+    cursor: pointer;
 }
 
 .toolbar button:hover {
-  background: #5e81ac;
+    background: var(--nord9);
 }
 
 .board-section {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .board {
-  width: 100%;
-  height: 100%;
-  /*min-width: 800px;*/
-  /*min-height: 600px;*/
-  user-select: none;
-  display: block;
+    width: 100%;
+    height: 100%;
+    /*min-width: 800px;*/
+    /*min-height: 600px;*/
+    user-select: none;
+    display: block;
 }
 
 .app {
