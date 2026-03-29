@@ -2,22 +2,34 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { MIN_WIDTH, MIN_HEIGHT, generateGraph } from "./graphUtils";
 import { initMines, revealNode, checkWin, toggleFlag } from "./gameUtils";
 
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
+
 const MINE_COUNT_COLORS = [
-  null,           // 0
-  "#1a4a8a",      // 1
-  "#1d7a2f",      // 2
-  "#c42525",      // 3
-  "#5e1a8a",      // 4
-  "#8e2a0a",      // 5
-  "#0e706e",      // 6
-  "#2a1640",      // 7
-  "#555555",      // 8
+  null, // 0
+  "#1a4a8a", // 1
+  "#1d7a2f", // 2
+  "#c42525", // 3
+  "#5e1a8a", // 4
+  "#8e2a0a", // 5
+  "#0e706e", // 6
+  "#2a1640", // 7
+  "#555555", // 8
 ];
 
+const DIFFICULTIES = [
+  { label: "Easy", nodeCount: 32, mines: 6 },
+  { label: "Medium", nodeCount: 64, mines: 12 },
+  { label: "Hard", nodeCount: 128, mines: 24 },
+  { label: "Expert", nodeCount: 256, mines: 48 },
+  { label: "Working with Team Conquer", nodeCount: 1024, mines: 192 },
+];
 
 export default function App() {
-  const [nodeCount, setNodeCount] = useState(30);
-  const [mineCount, setMineCount] = useState(5);
+  // const [nodeCount, setNodeCount] = useState(30);
+  // const [mineCount, setMineCount] = useState(5);
+  const [activeMineCount, setActiveMineCount] = useState(0);
+  const [diffLevel, setDiffLevel] = useState(1); // Default medium
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
   const [boardSize, setBoardSize] = useState({ w: MIN_WIDTH, h: MIN_HEIGHT });
@@ -26,10 +38,16 @@ export default function App() {
   const svgRef = useRef(null);
   const [hoveredNodeID, setHoveredNodeID] = useState(null);
 
+  const nodeCount = DIFFICULTIES[diffLevel].nodeCount;
+  const mineCount = DIFFICULTIES[diffLevel].mines;
+
   const hoveredNode = hoveredNodeID !== null ? nodes[hoveredNodeID] : null;
   const hoveredNeighors = hoveredNode ? hoveredNode.neighbors : [];
 
   const flagCount = nodes.filter((node) => node.isFlagged).length;
+
+  const displayMineCount =
+    gameState === "idle" && nodes.length === 0 ? mineCount : activeMineCount;
 
   function handleClick(id) {
     if (gameState === "won" || gameState === "lost") return;
@@ -38,9 +56,8 @@ export default function App() {
 
     if (nodes[id] && nodes[id].isFlagged) return;
 
-
     if (gameState === "idle") {
-      currentNodes = initMines(currentNodes, mineCount, id);
+      currentNodes = initMines(currentNodes, activeMineCount, id);
       setGameState("playing");
     }
 
@@ -56,7 +73,7 @@ export default function App() {
 
   function handleRightClick(e, id) {
     e.preventDefault();
-    if (mineCount - flagCount <= 0 && !nodes[id].isFlagged) return;
+    if (activeMineCount - flagCount <= 0 && !nodes[id].isFlagged) return;
     if (gameState === "won" || gameState === "lost") return;
     setNodes(toggleFlag(nodes, id));
   }
@@ -69,6 +86,7 @@ export default function App() {
     setNodes(nodes);
     setLinks(links);
     setBoardSize({ w, h });
+    setActiveMineCount(mineCount);
     setGameState("idle");
     setHoveredNodeID(null);
   }
@@ -91,62 +109,41 @@ export default function App() {
   return (
     <div className="app">
       <nav className="toolbar">
-        <label>
-          Nodes:
-          <input
-            type="number"
-            value={nodeCount}
-            onChange={(e) => {
-              const nodesCount = Math.max(
-                0,
-                Math.min(1000, Number(e.target.value)),
-              );
-              setNodeCount(nodesCount);
-              setMineCount(Math.min(mineCount, nodesCount - 1));
-            }}
-            min="0"
-            max="1000"
-          />
-        </label>
-        <label>
-          Mines:
-          <input
-            type="number"
-            value={mineCount}
-            onChange={(e) => {
-              const mines = Math.max(
-                0,
-                Math.min(nodeCount - 1, Number(e.target.value)),
-              );
-              setMineCount(mines);
-            }}
-            min="0"
-            max={nodeCount - 1}
-          />
-        </label>
-        <button onClick={startGame}>
-          {gameState === "won" || gameState === "lost"
-            ? "New Game"
-            : "Start Game"}
-        </button>
+        <div className="toolbar-row">
+          <div className="difficulty-slider">
+            <Slider
+              min={0}
+              max={DIFFICULTIES.length - 1}
+              step={null}
+              marks={Object.fromEntries(
+                DIFFICULTIES.map((d, i) => [i, d.label]),
+              )}
+              value={diffLevel}
+              onChange={setDiffLevel}
+            />
+          </div>
+          <button onClick={startGame}>
+            {gameState === "won" || gameState === "lost"
+              ? "New Game"
+              : "Start Game"}
+          </button>
 
-        {/* TODO: Redo this */}
-        <span className="debug">Game State: {gameState}</span>
-        {nodes.length > 0 && (
-          <span className="status">
-            {gameState === "won" && "🎉 You win!"}
-            {gameState === "lost" && "💥 Game over!"}
-            {(gameState === "idle" || gameState === "playing") &&
-              `| Remaining Mines: ${mineCount - flagCount}`}
-          </span>
-        )}
+          {nodes.length > 0 && (
+            <span className="status">
+              {gameState === "won" && "| 🎉 You win!"}
+              {gameState === "lost" && "| 💥 Game over!"}
+              {(gameState === "idle" || gameState === "playing") &&
+                `| Remaining Mines: ${displayMineCount - flagCount}`}
+            </span>
+          )}
+        </div>
       </nav>
-
       <div className="board-section" ref={boardRef}>
         <svg
           ref={svgRef}
           className="board"
           viewBox={`0 0 ${boardSize.w} ${boardSize.h}`}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {links.map((link, i) => {
             const sourceID = link.source.id;
@@ -174,7 +171,7 @@ export default function App() {
             let fill = "var(--nord10)";
             if (node.isRevealed && node.isMine) fill = "var(--nord11)";
             else if (node.isRevealed) fill = "#afc1d6";
-            else if (node.isFlagged) fill = "var(--nord7)";
+            else if (node.isFlagged) fill = "var(--nord12)";
 
             return (
               <g key={node.id}>
@@ -212,7 +209,9 @@ export default function App() {
                     fontSize="14"
                     fontWeight="bold"
                     pointerEvents="none"
-                  >{node.adjacentMines}</text>
+                  >
+                    {node.adjacentMines}
+                  </text>
                 )}
 
                 {node.isRevealed && node.isMine && (
@@ -223,7 +222,9 @@ export default function App() {
                     dominantBaseline="middle"
                     fontSize="12"
                     pointerEvents="none"
-                  >💣</text>
+                  >
+                    💣
+                  </text>
                 )}
               </g>
             );
