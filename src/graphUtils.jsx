@@ -8,7 +8,7 @@ import {
 
 export const MIN_WIDTH = 800;
 export const MIN_HEIGHT = 600;
-export const PAD = 20;
+export const PAD = 25;
 
 function forceBoundBox(width, height, strength = 0.3) {
   let nodes;
@@ -109,6 +109,22 @@ export function generateGraph(nodesCount, width, height) {
     simulation.tick();
   }
 
+  for (const n of nodes) {
+    n.vx = 0;
+    n.vy = 0;
+  }
+
+  simulation.force("link", null);
+  simulation.force("charge", null);
+  simulation.force("center", null);
+  simulation.force("collide", forceCollide(20));
+
+  for (let i = 0; i < 50; i++) {
+    simulation.tick();
+  }
+
+  simulation.alpha(0);
+
   let xMin = Infinity,
     xMax = -Infinity,
     yMin = Infinity,
@@ -126,5 +142,43 @@ export function generateGraph(nodesCount, width, height) {
     n.y = PAD + ((n.y - yMin) / ySpan) * (height - 2 * PAD);
   }
 
-  return { nodes, links };
+  return { nodes, links, simulation };
+}
+
+export function attachSimTick(simulation, width, height, onTick) {
+  if (!simulation) return;
+  simulation.on("tick", () => {
+    const simNodes = simulation.nodes();
+    for (const n of simNodes) {
+      n.x = Math.max(PAD, Math.min(width - PAD, n.x));
+      n.y = Math.max(PAD, Math.min(height - PAD, n.y));
+    }
+    onTick(simNodes.map((n) => ({ ...n })));
+  });
+}
+
+export function dragNode(simulation, nodeId, x, y, width, height) {
+  if (!simulation) return;
+  const node = simulation.nodes()[nodeId];
+  node.fx = Math.max(PAD, Math.min(width - PAD, x));
+  node.fy = Math.max(PAD, Math.min(height - PAD, y));
+  simulation.alpha(0.3).restart();
+}
+
+export function releaseNode(simulation, nodeId) {
+  if (!simulation) return;
+  const node = simulation.nodes()[nodeId];
+  node.fx = null;
+  node.fy = null;
+}
+
+export function syncSimNodes(simulation, updatedNodes) {
+  if (!simulation) return;
+  const simNodes = simulation.nodes();
+  for (let i = 0; i < updatedNodes.length; i++) {
+    simNodes[i].isMine = updatedNodes[i].isMine;
+    simNodes[i].isRevealed = updatedNodes[i].isRevealed;
+    simNodes[i].isFlagged = updatedNodes[i].isFlagged;
+    simNodes[i].adjacentMines = updatedNodes[i].adjacentMines;
+  }
 }

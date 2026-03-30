@@ -82,3 +82,23 @@ export function checkWin(nodes) {
   if (nodes.length === 0) return false;
   return nodes.every((node) => node.isMine || node.isRevealed);
 }
+
+export function chordReveal(nodes, id) {
+  const node = nodes[id];
+  if (!node.isRevealed || node.isMine || node.adjacentMines === 0)
+    return { nodes, hitMine: false };
+
+  const flaggedCount = node.neighbors.filter((n) => nodes[n].isFlagged).length;
+  if (flaggedCount !== node.adjacentMines) return { nodes, hitMine: false };
+
+  let cur = nodes,
+    hit = false;
+  for (const nId of node.neighbors) {
+    if (!cur[nId].isRevealed && !cur[nId].isFlagged) {
+      const res = revealNode(cur, nId);
+      cur = res.nodes;
+      if (res.hitMine) hit = true;
+    }
+  }
+  return { nodes: cur, hitMine: hit };
+}
