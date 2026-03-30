@@ -6,6 +6,8 @@ import {
   forceCollide,
 } from "d3-force";
 
+import { Delaunay } from "d3-delaunay";
+
 export const MIN_WIDTH = 800;
 export const MIN_HEIGHT = 600;
 export const PAD = 25;
@@ -38,8 +40,8 @@ export function generateGraph(nodesCount, width, height) {
 
   const nodes = Array.from({ length: nodesCount }, (_, i) => ({
     id: i,
-    x: width / 2,
-    y: height / 2,
+    x: Math.random() * (width - 2 * PAD) + PAD,
+    y: Math.random() * (height - 2 * PAD) + PAD,
     neighbors: [],
     isMine: false,
     isRevealed: false,
@@ -68,28 +70,19 @@ export function generateGraph(nodesCount, width, height) {
     return true;
   }
 
-  // Spanning tree
-  for (let i = 1; i < nodesCount; i++) {
-    let success = false;
-    while (!success) {
-      success = addEdge(Math.floor(Math.random() * i), i);
+  const delaunay = Delaunay.from(
+    nodes,
+    (n) => n.x,
+    (n) => n.y,
+  );
+  for (let i = 0; i < nodesCount; i++) {
+    for (const j of delaunay.neighbors(i)) {
+      if (j > i) addEdge(i, j);
     }
   }
 
-  // Extra edges
-  const extraEdges = nodesCount + 1;
-  let added = 0;
-  let attempts = 0;
-  let maxAttempts = extraEdges * 5; // To ensure we have enough extra edges.
+  // Remove some edges to make it more interesting
 
-  while (added < extraEdges && attempts < maxAttempts) {
-    attempts++;
-    const source = Math.floor(Math.random() * nodesCount);
-    const target = Math.floor(Math.random() * nodesCount);
-    if (addEdge(source, target)) {
-      added++;
-    }
-  }
 
   // Simulation
   const simulation = forceSimulation(nodes)
@@ -99,10 +92,10 @@ export function generateGraph(nodesCount, width, height) {
         .id((d) => d.id)
         .distance(40),
     )
-    .force("charge", forceManyBody().strength(-150))
+    // .force("charge", forceManyBody().strength(-150))
     .force("center", forceCenter(width / 2, height / 2))
     .force("collide", forceCollide(30))
-    .force("bounds", forceBoundBox(width, height, 1))
+    // .force("bounds", forceBoundBox(width, height, 1))
     .stop();
 
   for (let i = 0; i < 300; i++) {
@@ -119,11 +112,11 @@ export function generateGraph(nodesCount, width, height) {
   simulation.force("center", null);
   simulation.force("collide", forceCollide(20));
 
-  for (let i = 0; i < 50; i++) {
-    simulation.tick();
-  }
+  // for (let i = 0; i < 50; i++) {
+  //   simulation.tick();
+  // }
 
-  simulation.alpha(0);
+  simulation.alpha(0.3).restart();
 
   let xMin = Infinity,
     xMax = -Infinity,
