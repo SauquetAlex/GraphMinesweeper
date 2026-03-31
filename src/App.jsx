@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { fireworks as fx } from "fireworks";
 import {
   MIN_WIDTH,
   MIN_HEIGHT,
@@ -201,6 +202,42 @@ export default function App() {
       if (simRef.current) simRef.current.stop();
     };
   }, []);
+
+  useEffect(() => {
+    if (gameState !== "won") return;
+
+    document.body.style.overflow = "hidden";
+
+    const colors = [
+      "#88C0D0",
+      "#A3BE8C",
+      "#EBCB8B",
+      "#B48EAD",
+      "#BF616A",
+      "#D08770",
+    ];
+    const rect = boardRef.current.getBoundingClientRect();
+    const pad = 100;
+
+    const id = setInterval(() => {
+      for (let i = 0; i < 5; i++) {
+        const colW = (rect.width - 2 * pad) / 5;
+        fx({
+          x: rect.left + pad + colW * (i + 0.15 + Math.random() * 0.7),
+          y: rect.top + pad + 0.8 * Math.random() * (rect.height - 2 * pad),
+          colors,
+          particleTimeout: 2000,
+        });
+      }
+    }, 700);
+
+    const timeout = setTimeout(() => clearInterval(id), 3000);
+
+    return () => {
+      clearInterval(id);
+      clearTimeout(timeout);
+    };
+  }, [gameState]);
 
   function screenToSVG(clientX, clientY) {
     const svg = svgRef.current;

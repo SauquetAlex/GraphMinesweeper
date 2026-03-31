@@ -1,7 +1,7 @@
 import {
   forceSimulation,
   forceLink,
-  forceManyBody,
+  // forceManyBody,
   forceCenter,
   forceCollide,
 } from "d3-force";
@@ -12,21 +12,21 @@ export const MIN_WIDTH = 800;
 export const MIN_HEIGHT = 600;
 export const PAD = 25;
 
-function forceBoundBox(width, height, strength = 0.3) {
-  let nodes;
-  function force() {
-    for (const n of nodes) {
-      if (n.x < PAD) n.vx += (PAD - n.x) * strength;
-      if (n.x > width - PAD) n.vx -= (n.x - (width - PAD)) * strength;
-      if (n.y < PAD) n.vy += (PAD - n.y) * strength;
-      if (n.y > height - PAD) n.vy -= (n.y - (height - PAD)) * strength;
-    }
-  }
-  force.initialize = (n) => {
-    nodes = n;
-  };
-  return force;
-}
+// function forceBoundBox(width, height, strength = 0.3) {
+//   let nodes;
+//   function force() {
+//     for (const n of nodes) {
+//       if (n.x < PAD) n.vx += (PAD - n.x) * strength;
+//       if (n.x > width - PAD) n.vx -= (n.x - (width - PAD)) * strength;
+//       if (n.y < PAD) n.vy += (PAD - n.y) * strength;
+//       if (n.y > height - PAD) n.vy -= (n.y - (height - PAD)) * strength;
+//     }
+//   }
+//   force.initialize = (n) => {
+//     nodes = n;
+//   };
+//   return force;
+// }
 
 /*
  * Random connected graph generator which uses d3-force simulation to get positions.

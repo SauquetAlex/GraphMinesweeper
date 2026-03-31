@@ -12,6 +12,7 @@
   "dependencies": {
     "d3-delaunay": "^6.0.4",
     "d3-force": "^3.0.0",
+    "fireworks": "^2.2.7",
     "rc-slider": "^11.1.9",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
