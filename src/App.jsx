@@ -38,7 +38,7 @@ const DIFFICULTIES = [
   { label: "Medium", nodeCount: 128, mines: 24 },
   { label: "Hard", nodeCount: 256, mines: 48 },
   { label: "Expert", nodeCount: 512, mines: 96 },
-  { label: "Working with Team Conquer", nodeCount: 1024, mines: 224 },
+  { label: "Impossible", nodeCount: 1024, mines: 224 },
 ];
 
 export default function App() {
